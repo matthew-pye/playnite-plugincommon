@@ -834,11 +834,20 @@ namespace CommonPluginsStores.Gog
                     {
                         bool loggedIn = await Task.Run(() =>
                         {
-                            var pageText = Web.DownloadSourceDataWebView(UrlAccountInfo).GetAwaiter().GetResult();
-							string stringInfo = pageText.Item1;
-							_ = Serialization.TryFromJson(stringInfo, out AccountBasicResponse accountBasicResponse);
-							AccountBasic = accountBasicResponse;
-							return AccountBasic?.IsLoggedIn ?? false;
+                            using (IWebView webViewBackground = API.Instance.WebViews.CreateOffscreenView())
+                            {
+                                webViewBackground.NavigateAndWait(UrlAccountInfo);
+                                string stringInfo = webViewBackground.GetPageText();
+                                _ = Serialization.TryFromJson(stringInfo, out AccountBasicResponse accountBasicResponse);
+                                AccountBasic = accountBasicResponse;
+                                return AccountBasic?.IsLoggedIn ?? false;
+                            }
+
+                            //var pageText = Web.DownloadSourceDataWebView(UrlAccountInfo).GetAwaiter().GetResult();
+                            //string stringInfo = pageText.Item1;
+                            //_ = Serialization.TryFromJson(stringInfo, out AccountBasicResponse accountBasicResponse);
+                            //AccountBasic = accountBasicResponse;
+                            //return AccountBasic?.IsLoggedIn ?? false;
                         });
                         if (loggedIn)
                         {
